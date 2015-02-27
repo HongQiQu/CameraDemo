@@ -27,6 +27,15 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
             case R.id.shutter_btn:
                 cameraSurfaceView.takePicture(this, null, this);
                 break;
+            case R.id.zoom_down_btn:
+                cameraSurfaceView.zoomDown();
+                break;
+            case R.id.zoom_up_btn:
+                cameraSurfaceView.zoomUp();
+                break;
+            case R.id.torch_switch_btn:
+                cameraSurfaceView.toggleTorch();
+                break;
             default:
 
                 break;
@@ -38,7 +47,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
     public void onPictureTaken(byte[] data, Camera camera) {
         Log.d("CameraSurfaceView", "CameraSurfaceView onPictureTaken currentThread : " + Thread.currentThread());
         cameraSurfaceView.restartPreview();
-        
+
         // TODO 保存图片 目前再主线程中进行 需要后台进行
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
         File file = Utils.getDiskCacheDir(this, "bitmap");

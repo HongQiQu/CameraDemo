@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
         >
     <com.ihongqiqu.camera.CameraSurfaceView
             android:id="@+id/camera_surfaceview"
@@ -10,13 +9,52 @@
             android:layout_height="match_parent"/>
     <Button
             android:id="@+id/shutter_btn"
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="20dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
             android:onClick="onClick"
             android:text="Shutter"
             />
+
+    <Button
+            android:id="@+id/zoom_down_btn"
+            android:layout_width="55dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@+id/shutter_btn"
+            android:layout_marginBottom="20dp"
+            android:onClick="onClick"
+            android:text="-"
+            android:gravity="center"
+            android:layout_marginRight="10dp"/>
+
+    <Button
+            android:id="@+id/zoom_up_btn"
+            android:layout_width="55dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/shutter_btn"
+            android:layout_marginBottom="20dp"
+            android:onClick="onClick"
+            android:text="+"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"/>
+
+    <Button
+            android:id="@+id/torch_switch_btn"
+            android:layout_width="55dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_above="@+id/shutter_btn"
+            android:layout_marginBottom="20dp"
+            android:onClick="onClick"
+            android:text="O"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"/>
+
 </RelativeLayout>
 
