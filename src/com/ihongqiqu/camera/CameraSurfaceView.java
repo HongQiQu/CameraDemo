@@ -3,12 +3,15 @@ package com.ihongqiqu.camera;
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
 
 /**
+ * 自定义相机
+ *
  * Created by zhenguo on 2/27/15.
  */
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback{
@@ -37,8 +40,17 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    public void takePicture() {
+    public void takePicture(Camera.ShutterCallback shutter, Camera.PictureCallback raw,
+                            Camera.PictureCallback jpeg) {
+        if (camera != null) {
+            camera.takePicture(shutter, raw, jpeg);
+        }
+    }
 
+    public void restartPreview() {
+        if (camera != null) {
+            camera.startPreview();
+        }
     }
 
     @Override
@@ -71,4 +83,5 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             camera = null;
         }
     }
+
 }
