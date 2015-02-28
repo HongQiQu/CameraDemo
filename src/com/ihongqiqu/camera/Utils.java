@@ -3,10 +3,13 @@ package com.ihongqiqu.camera;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.view.View;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 /**
@@ -130,6 +133,83 @@ public class Utils {
                 (int) actualCropHeight);
 
         return croppedBitmap;
+    }
+
+    /**
+     * 图片压缩方法：（使用compress的方法）
+     * <p/>
+     * <br>
+     * <b>说明</b> 如果bitmap本身的大小小于maxSize，则不作处理
+     *
+     * @param bitmap  要压缩的图片
+     * @param maxSize 压缩后的大小，单位kb
+     */
+    public static void compress(Bitmap bitmap, double maxSize) {
+        // 将bitmap放至数组中，意在获得bitmap的大小（与实际读取的原文件要大）
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        // 格式、质量、输出流
+        bitmap.compress(Bitmap.CompressFormat.PNG, 70, baos);
+        byte[] b = baos.toByteArray();
+        // 将字节换成KB
+        double mid = b.length / 1024;
+        // 获取bitmap大小 是允许最大大小的多少倍
+        double i = mid / maxSize;
+        // 判断bitmap占用空间是否大于允许最大空间 如果大于则压缩 小于则不压缩
+        if (i > 1) {
+            // 缩放图片 此处用到平方根 将宽带和高度压缩掉对应的平方根倍
+            // （保持宽高不变，缩放后也达到了最大占用空间的大小）
+            bitmap = scale(bitmap, bitmap.getWidth() / Math.sqrt(i),
+                    bitmap.getHeight() / Math.sqrt(i));
+        }
+    }
+
+    /**
+     * 图片的缩放方法
+     *
+     * @param src       ：源图片资源
+     * @param newWidth  ：缩放后宽度
+     * @param newHeight ：缩放后高度
+     */
+    public static Bitmap scale(Bitmap src, double newWidth, double newHeight) {
+        // 记录src的宽高
+        float width = src.getWidth();
+        float height = src.getHeight();
+        // 创建一个matrix容器
+        Matrix matrix = new Matrix();
+        // 计算缩放比例
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        // 开始缩放
+        matrix.postScale(scaleWidth, scaleHeight);
+        // 创建缩放后的图片
+        return Bitmap.createBitmap(src, 0, 0, (int) width, (int) height,
+                matrix, true);
+    }
+
+    /**
+     * 获取屏幕长宽比
+     * @param context
+     * @return
+     */
+    public static float getScreenRate(Context context){
+        Point P = getScreenMetrics(context);
+        float H = P.y;
+        float W = P.x;
+        return (H/W);
+    }
+
+    /**
+     * 获取屏幕宽度和高度，单位为px
+     * @param context
+     * @return
+     */
+    public static Point getScreenMetrics(Context context){
+        DisplayMetrics dm =context.getResources().getDisplayMetrics();
+        int w_screen = dm.widthPixels;
+        int h_screen = dm.heightPixels;
+        // Log.i(TAG, "Screen---Width = " + w_screen + " Height = " + h_screen + " densityDpi = " + dm.densityDpi);
+        return new Point(w_screen, h_screen);
+
     }
 
 }

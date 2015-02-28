@@ -70,6 +70,8 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
         Bitmap rightBitmap = Utils.rotate(b, 90);
 
+        Utils.compress(rightBitmap, 2 * 1024 * 1024);
+
         Camera.Size size = cameraSurfaceView.getPreviewSize();
         if (size != null) {
             Log.d("CameraSurfaceView", "CameraSurfaceView cameraSize : " + size.width + " - " + size.height);
@@ -77,7 +79,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
             Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize : " + b.getWidth() + " - " + b.getHeight());
             Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize2 : " + rightBitmap.getWidth() + " - " + rightBitmap.getHeight());
         } else {
-            return;
+            // return;
         }
 
         int cropWidth = (int) (1F * viewHeight / mScreenWidth * rightBitmap.getWidth());

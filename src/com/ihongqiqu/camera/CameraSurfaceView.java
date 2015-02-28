@@ -7,6 +7,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -27,6 +29,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     private int zoomValue = 0;
 
     private boolean safeToTakePicture = false;
+
+    Camera.Size mPreviewSize;
+    List<Camera.Size> mSupportedPreviewSizes;
 
     public CameraSurfaceView(Context context) {
         super(context);
@@ -144,6 +149,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         safeToTakePicture = true;
     }
 
+    /**
+     * 重新开启预览
+     */
     public void restartPreview() {
         if (camera != null) {
             preview();
@@ -156,9 +164,61 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         // 这里面的参数只能是几个特定的参数，否则会报错.(176*144,320*240,352*288,480*360,640*480)
         // params.setPreviewSize(640, 480);
         camera.setParameters(params);
+        /*Log.d("CameraSurfaceView", "CameraSurfaceView width - height : " + getWidth() + " - " + getHeight());
+        Camera.Size size;// = getOptimalPreviewSize(params.getSupportedPreviewSizes(), getWidth(), getHeight());
+        size = getPreviewSize();
+        if (size != null) {
+            Log.d("CameraSurfaceView", "CameraSurfaceView size width - height : " + size.width + " - " + size.height);
+            int w = size.width;
+            int h = size.height;
+            params.setPreviewSize(w, h);
+            // params.setPictureSize(size.width, size.height);
+        }*/
+
+        if (mPreviewSize != null) {
+            Log.d("CameraSurfaceView", "CameraSurfaceView mPreviewSize width - height : " + mPreviewSize.width + " - " + mPreviewSize.height);
+            Log.d("CameraSurfaceView", "CameraSurfaceView view         width - height : " + getWidth() + " - " + getHeight());
+            // params.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+            params.setPreviewSize(mPreviewSize.height, mPreviewSize.width);
+            requestLayout();
+        }
+
         camera.startPreview();
         camera.autoFocus(this);
         Log.d("CameraSurfaceView", "CameraSurfaceView zoom : " + params.getZoom());
+    }
+
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) w / h;
+        if (sizes == null) return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        // Try to find an size match aspect ratio and size
+        for (Camera.Size size : sizes) {
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        // Cannot find the one match the aspect ratio, ignore the requirement
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+        return optimalSize;
     }
 
     @Override
@@ -169,6 +229,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 camera = Camera.open();
                 camera.setPreviewDisplay(surfaceHolder);
                 camera.setDisplayOrientation(90);
+
+                mSupportedPreviewSizes = camera.getParameters().getSupportedPreviewSizes();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (Exception e) {
@@ -192,6 +254,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             } catch (Exception e){
                 // ignore: tried to stop a non-existent preview
             }
+
+            Log.d("CameraSurfaceView", "CameraSurfaceView surfaceChanged width - height : " + width + " - " + height);
+
             preview();
         }
         safeToTakePicture = true;
@@ -210,4 +275,19 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public void onAutoFocus(boolean success, Camera camera) {
 
     }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // We purposely disregard child measurements because act as a
+        // wrapper to a SurfaceView that centers the camera preview instead
+        // of stretching it.
+        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+        setMeasuredDimension(width, height);
+
+        if (mSupportedPreviewSizes != null) {
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+        }
+    }
+
 }
