@@ -2,7 +2,6 @@ package com.ihongqiqu.camera;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
-import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -11,6 +10,7 @@ import android.view.SurfaceView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 自定义相机
@@ -25,6 +25,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     private Camera camera;
 
     private int zoomValue = 0;
+
+    private boolean safeToTakePicture = false;
 
     public CameraSurfaceView(Context context) {
         super(context);
@@ -56,7 +58,10 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public void takePicture(Camera.ShutterCallback shutter, Camera.PictureCallback raw,
                             Camera.PictureCallback jpeg) {
         if (camera != null) {
-            camera.takePicture(shutter, raw, jpeg);
+            if (safeToTakePicture) {
+                camera.takePicture(shutter, raw, jpeg);
+                safeToTakePicture = false;
+            }
         }
     }
 
@@ -121,6 +126,24 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
     }
 
+    public Camera.Size getPreviewSize() {
+        if (camera != null) {
+            Camera.Parameters p = camera.getParameters();
+            List<Camera.Size> sizes =  p.getSupportedPictureSizes();
+            if (sizes != null && sizes.size() > 0) {
+                return sizes.get(0);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 设置可以拍照
+     */
+    public void setSafeToTakePicture() {
+        safeToTakePicture = true;
+    }
+
     public void restartPreview() {
         if (camera != null) {
             preview();
@@ -142,11 +165,14 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public void surfaceCreated(SurfaceHolder holder) {
 
         if (camera == null) {
-            camera = Camera.open();
             try {
+                camera = Camera.open();
                 camera.setPreviewDisplay(surfaceHolder);
                 camera.setDisplayOrientation(90);
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e("Error", "相机异常");
                 e.printStackTrace();
             }
         }
@@ -155,10 +181,20 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        if (surfaceHolder.getSurface() == null) {
+            return;
+        }
         //设置参数并开始预览
         if (camera != null) {
+            // stop preview before making changes
+            try {
+                camera.stopPreview();
+            } catch (Exception e){
+                // ignore: tried to stop a non-existent preview
+            }
             preview();
         }
+        safeToTakePicture = true;
     }
 
     @Override
