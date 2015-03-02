@@ -91,5 +91,17 @@
             android:gravity="center"
             android:layout_marginLeft="10dp"/>
 
+        <Button
+                android:id="@+id/choose_picture_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_toRightOf="@+id/torch_switch_btn"
+                android:layout_alignBottom="@+id/torch_switch_btn"
+                android:onClick="onClick"
+                android:text="Choose"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"/>
+
 </RelativeLayout>
 

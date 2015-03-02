@@ -1,19 +1,26 @@
 package com.ihongqiqu.camera;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.*;
 import android.widget.Toast;
 
 import java.io.*;
-import java.util.List;
 
 public class MainActivity extends Activity implements Camera.PictureCallback, Camera.ShutterCallback{
+
+    public static final int FLAG_CHOOCE_PICTURE = 2001;
 
     private View centerWindowView;
     private int mScreenHeight, mScreenWidth;
@@ -82,6 +89,9 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
                 break;
             case R.id.torch_switch_btn:
                 toggleTorch();
+                break;
+            case R.id.choose_picture_btn:
+                choosePicture();
                 break;
             default:
 
@@ -200,6 +210,26 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         }
     }
 
+    /**
+     * 选择图片
+     */
+    private void choosePicture() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, FLAG_CHOOCE_PICTURE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FLAG_CHOOCE_PICTURE && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            String imgPath = getUrl(uri);
+            Log.d("", "CameraSurfaceView imgPath : " + imgPath);
+        }
+    }
+
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
         safeToTakePicture = true;
@@ -211,7 +241,29 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
             mCamera.autoFocus(mPreview);
         }
 
-        // TODO 保存图片 目前再主线程中进行 需要后台进行
+        // 保存图片
+        final byte[] b = data;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                handleAndSaveBitmap(b);
+            }
+        }).start();
+
+        safeToTakePicture = true;
+    }
+
+    @Override
+    public void onShutter() {
+        Log.d("CameraSurfaceView", "CameraSurfaceView onShutter");
+    }
+
+    /**
+     * 处理拍照图片并保存
+     * @param data
+     */
+    private synchronized void handleAndSaveBitmap(byte[] data) {
+        // 保存图片
         Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
 
         Bitmap rightBitmap = Utils.rotate(b, 90);
@@ -260,13 +312,24 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
                 bmp = null;
             }
         }
-
-        safeToTakePicture = true;
     }
 
-    @Override
-    public void onShutter() {
-        Log.d("CameraSurfaceView", "CameraSurfaceView onShutter");
+    /**
+     * 获取从相册中选择的图片的据对路径
+     * @param uri
+     * @return
+     */
+    private String getUrl(Uri uri) {
+        if (uri == null) {
+            return null;
+        }
+
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor actualimagecursor = managedQuery(uri,proj,null,null,null);
+        int actual_image_column_index = actualimagecursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        actualimagecursor.moveToFirst();
+        String img_path = actualimagecursor.getString(actual_image_column_index);
+        return TextUtils.isEmpty(img_path) ? null : img_path;
     }
 
 }
