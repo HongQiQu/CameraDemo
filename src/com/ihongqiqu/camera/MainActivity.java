@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
@@ -61,6 +62,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         // Create a RelativeLayout container that will hold a SurfaceView,
         // and set it as the content of our activity.
         mPreview = (CameraPreview) findViewById(R.id.camera_preview);
+        mPreview.setActivity(this);
 
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
@@ -110,6 +112,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
                 mCamera = Camera.open();
             } catch (Exception e) {
                 e.printStackTrace();
+                Toast.makeText(this, "启动照相机失败，请检查设备并打开权限", Toast.LENGTH_SHORT).show();
             }
         }
         cameraCurrentlyLocked = defaultCameraId;
@@ -275,8 +278,8 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize2 : " + rightBitmap.getWidth() + " - " + rightBitmap.getHeight());
 
         int cropWidth = (int) (1F * viewHeight / mScreenWidth * rightBitmap.getWidth());
-        int cropX = rightBitmap.getWidth() / 4;
-        int cropY = (rightBitmap.getHeight() - cropWidth) / 2;
+        int cropX = (rightBitmap.getWidth() - mPreview.moveX * 2) / 4;
+        int cropY = (rightBitmap.getHeight() - cropWidth - mPreview.moveY * 2) / 2;
         if (rightBitmap.getWidth() < cropWidth + cropX) {
             cropX = rightBitmap.getWidth() - cropWidth;
         }

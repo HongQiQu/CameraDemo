@@ -5,6 +5,7 @@
         >
     <com.ihongqiqu.camera.CameraPreview
             android:id="@+id/camera_preview"
+            android:background="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
