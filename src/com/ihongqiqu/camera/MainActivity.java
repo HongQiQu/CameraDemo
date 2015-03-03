@@ -1,25 +1,25 @@
 package com.ihongqiqu.camera;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.*;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.*;
 
-public class MainActivity extends Activity implements Camera.PictureCallback, Camera.ShutterCallback{
+public class MainActivity extends Activity implements Camera.PictureCallback, Camera.ShutterCallback {
 
     public static final int FLAG_CHOOCE_PICTURE = 2001;
 
@@ -39,6 +39,9 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
     // The first rear facing camera
     int defaultCameraId;
 
+    private ImageView preview_iv;
+    private Handler handler;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +50,9 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.main);
+
+        preview_iv = (ImageView) findViewById(R.id.preview_iv);
+        handler = new Handler();
 
         centerWindowView = findViewById(R.id.center_window_view);
         Log.d("CameraSurfaceView", "CameraSurfaceView onCreate currentThread : " + Thread.currentThread());
@@ -62,7 +68,6 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         // Create a RelativeLayout container that will hold a SurfaceView,
         // and set it as the content of our activity.
         mPreview = (CameraPreview) findViewById(R.id.camera_preview);
-        mPreview.setActivity(this);
 
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
@@ -81,7 +86,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.shutter_btn:
-                takePicture(this, null, this);
+                takePicture(null, null, this);
                 break;
             case R.id.zoom_down_btn:
                 zoomDown();
@@ -107,13 +112,11 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         super.onResume();
 
         // Open the default i.e. the first rear facing camera.
-        if (mCamera == null) {
-            try {
-                mCamera = Camera.open();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(this, "启动照相机失败，请检查设备并打开权限", Toast.LENGTH_SHORT).show();
-            }
+        try {
+            mCamera = Camera.open();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "启动照相机失败，请检查设备并打开权限", Toast.LENGTH_SHORT).show();
         }
         cameraCurrentlyLocked = defaultCameraId;
         mPreview.setCamera(mCamera);
@@ -138,6 +141,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
     /**
      * 拍照
+     *
      * @param shutter
      * @param raw
      * @param jpeg
@@ -235,14 +239,21 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
-        safeToTakePicture = true;
 
-        Log.d("CameraSurfaceView", "CameraSurfaceView onPictureTaken currentThread : " + Thread.currentThread());
         // cameraSurfaceView.restartPreview();
         if (mCamera != null) {
             mCamera.startPreview();
             mCamera.autoFocus(mPreview);
         }
+
+        if (data == null || data.length <= 0) {
+            safeToTakePicture = true;
+            return;
+        }
+
+        Log.d("CameraSurfaceView", "CameraSurfaceView onPictureTaken data.length : " + data.length);
+        Toast.makeText(this, "data.length : " + data.length, Toast.LENGTH_SHORT).show();
+
 
         // 保存图片
         final byte[] b = data;
@@ -263,6 +274,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
     /**
      * 处理拍照图片并保存
+     *
      * @param data
      */
     private synchronized void handleAndSaveBitmap(byte[] data) {
@@ -272,10 +284,6 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         Bitmap rightBitmap = Utils.rotate(b, 90);
 
         Utils.compress(rightBitmap, 2 * 1024 * 1024);
-
-        Log.d("CameraSurfaceView", "CameraSurfaceView screenSize : " + mScreenWidth + " - " + mScreenHeight);
-        Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize : " + b.getWidth() + " - " + b.getHeight());
-        Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize2 : " + rightBitmap.getWidth() + " - " + rightBitmap.getHeight());
 
         int cropWidth = (int) (1F * viewHeight / mScreenWidth * (rightBitmap.getWidth() - mPreview.moveX * 2));
         int cropX = rightBitmap.getWidth() / 2 - cropWidth / 2;
@@ -289,7 +297,15 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         Log.d("CameraSurfaceView", "CameraSurfaceView viewWidth   : " + centerWindowView.getWidth());
         Log.d("CameraSurfaceView", "CameraSurfaceView bitmapWidth : " + rightBitmap.getWidth() / 2);
 
-        Bitmap bmp = Bitmap.createBitmap(rightBitmap, cropX, cropY, cropWidth, cropWidth);
+        final Bitmap bmp = Bitmap.createBitmap(rightBitmap, cropX, cropY, cropWidth, cropWidth);
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                preview_iv.setImageBitmap(bmp);
+            }
+        });
+
         // Bitmap bmp = Utils.getCroppedImage(b, centerWindowView);
         File file = Utils.getDiskCacheDir(this, "bitmap");
         if (!file.exists()) {
@@ -310,15 +326,16 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
                 b.recycle();
                 b = null;
             }
-            if (bmp != null && !bmp.isRecycled()) {
+            /*if (bmp != null && !bmp.isRecycled()) {
                 bmp.recycle();
                 bmp = null;
-            }
+            }*/
         }
     }
 
     /**
      * 获取从相册中选择的图片的据对路径
+     *
      * @param uri
      * @return
      */
@@ -327,8 +344,8 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
             return null;
         }
 
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor actualimagecursor = managedQuery(uri,proj,null,null,null);
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor actualimagecursor = managedQuery(uri, proj, null, null, null);
         int actual_image_column_index = actualimagecursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         actualimagecursor.moveToFirst();
         String img_path = actualimagecursor.getString(actual_image_column_index);

@@ -1,9 +1,6 @@
 package com.ihongqiqu.camera;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -16,17 +13,24 @@ import java.util.*;
  * A simple wrapper around a Camera and a SurfaceView that renders a centered preview of the Camera
  * to the surface. We need to center the SurfaceView because not all devices have cameras that
  * support preview sizes at the same aspect ratio as the device's display.
- *
- * Created by zhenguo on 3/2/15.
+ * <p/>
+ * Modified by zhenguo on 3/2/15.
  */
 class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.AutoFocusCallback {
     private final String TAG = "Preview";
 
-    SurfaceView mSurfaceView;
-    SurfaceHolder mHolder;
-    Camera.Size mPreviewSize;
-    List<Camera.Size> mSupportedPreviewSizes;
-    Camera mCamera;
+    /**
+     * 图片的偏移
+     */
+    public int moveX = 0;
+    public int moveY = 0;
+
+    private SurfaceView mSurfaceView;
+    private SurfaceHolder mHolder;
+    private Camera.Size mPreviewSize;
+    private List<Camera.Size> mSupportedPreviewSizes;
+
+    private Camera mCamera;
 
     CameraPreview(Context context) {
         super(context);
@@ -59,24 +63,14 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
     public void setCamera(Camera camera) {
         mCamera = camera;
         if (mCamera != null) {
-            mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
-            mCamera.setDisplayOrientation(90);
+            try {
+                mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+                mCamera.setDisplayOrientation(90);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             requestLayout();
         }
-    }
-
-    public void switchCamera(Camera camera) {
-        setCamera(camera);
-        try {
-            camera.setPreviewDisplay(mHolder);
-        } catch (IOException exception) {
-            Log.e(TAG, "IOException caused by setPreviewDisplay()", exception);
-        }
-        Camera.Parameters parameters = camera.getParameters();
-        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-        requestLayout();
-
-        camera.setParameters(parameters);
     }
 
     @Override
@@ -90,18 +84,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
 
         if (mSupportedPreviewSizes != null) {
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
-
-            /*if (mCamera != null) {
-                mPreviewSize = getBestPreviewSize(width, height, mCamera.getParameters());
-            }*/
-
-            /*WindowManager manager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-            Display display = manager.getDefaultDisplay();
-            Point theScreenResolution = new Point(display.getWidth(), display.getHeight());
-            // display.getSize(theScreenResolution);
-            if (mCamera != null) {
-                mPreviewSize = findBestPreviewSizeValue(mCamera.getParameters(), theScreenResolution);
-            }*/
         }
     }
 
@@ -142,14 +124,9 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
                 }
                 child.layout(-moveX, -moveY, scaleWidth, scaleHeight);
             }
+
         }
     }
-
-    /**
-     * 图片的偏移
-     */
-    public int moveX = 0;
-    public int moveY = 0;
 
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d("", "surface surfaceCreated()");
@@ -177,16 +154,20 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
         if (mCamera == null) {
             return;
         }
-        // Now that the size is known, set up the camera parameters and begin
-        // the preview.
-        Camera.Parameters parameters = mCamera.getParameters();
-        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-        parameters.setPictureSize(mPreviewSize.width, mPreviewSize.height);
-        requestLayout();
+        try {
+            // Now that the size is known, set up the camera parameters and begin
+            // the preview.
+            Camera.Parameters parameters = mCamera.getParameters();
+            parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+            parameters.setPictureSize(mPreviewSize.width, mPreviewSize.height);
+            requestLayout();
 
-        mCamera.setParameters(parameters);
-        mCamera.startPreview();
-        mCamera.autoFocus(this);
+            mCamera.setParameters(parameters);
+            mCamera.startPreview();
+            mCamera.autoFocus(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -227,137 +208,4 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
         return optimalSize;
     }
 
-    private static final int MIN_PREVIEW_PIXELS = 480 * 320; // normal screen
-    private static final double MAX_ASPECT_DISTORTION = 0.15;
-
-    public static Camera.Size findBestPreviewSizeValue(Camera.Parameters parameters, Point screenResolution) {
-
-        List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
-        if (rawSupportedSizes == null) {
-            // Log.w(TAG, "Device returned no supported preview sizes; using default");
-            Camera.Size defaultSize = parameters.getPreviewSize();
-            if (defaultSize == null) {
-                throw new IllegalStateException("Parameters contained no preview size!");
-            }
-            // return new Point(defaultSize.width, defaultSize.height);
-            return defaultSize;
-        }
-
-        // Sort by size, descending
-        List<Camera.Size> supportedPreviewSizes = new ArrayList<Camera.Size>(rawSupportedSizes);
-        Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>() {
-            @Override
-            public int compare(Camera.Size a, Camera.Size b) {
-                int aPixels = a.height * a.width;
-                int bPixels = b.height * b.width;
-                if (bPixels < aPixels) {
-                    return -1;
-                }
-                if (bPixels > aPixels) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-
-        /*if (Log.isLoggable(TAG, Log.INFO)) {
-            StringBuilder previewSizesString = new StringBuilder();
-            for (Camera.Size supportedPreviewSize : supportedPreviewSizes) {
-                previewSizesString.append(supportedPreviewSize.width).append('x')
-                        .append(supportedPreviewSize.height).append(' ');
-            }
-            Log.i(TAG, "Supported preview sizes: " + previewSizesString);
-        }*/
-
-        double screenAspectRatio = (double) screenResolution.x / (double) screenResolution.y;
-
-        // Remove sizes that are unsuitable
-        Iterator<Camera.Size> it = supportedPreviewSizes.iterator();
-        while (it.hasNext()) {
-            Camera.Size supportedPreviewSize = it.next();
-            int realWidth = supportedPreviewSize.width;
-            int realHeight = supportedPreviewSize.height;
-            if (realWidth * realHeight < MIN_PREVIEW_PIXELS) {
-                it.remove();
-                continue;
-            }
-
-            boolean isCandidatePortrait = realWidth < realHeight;
-            int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
-            int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
-            double aspectRatio = (double) maybeFlippedWidth / (double) maybeFlippedHeight;
-            double distortion = Math.abs(aspectRatio - screenAspectRatio);
-            if (distortion > MAX_ASPECT_DISTORTION) {
-                it.remove();
-                continue;
-            }
-
-            if (maybeFlippedWidth == screenResolution.x && maybeFlippedHeight == screenResolution.y) {
-                /*Point exactPoint = new Point(realWidth, realHeight);
-                Log.i(TAG, "Found preview size exactly matching screen size: " + exactPoint);
-                return exactPoint;*/
-                return supportedPreviewSize;
-            }
-        }
-
-        // If no exact match, use largest preview size. This was not a great idea on older devices because
-        // of the additional computation needed. We're likely to get here on newer Android 4+ devices, where
-        // the CPU is much more powerful.
-        if (!supportedPreviewSizes.isEmpty()) {
-            Camera.Size largestPreview = supportedPreviewSizes.get(0);
-            /*Point largestSize = new Point(largestPreview.width, largestPreview.height);
-            Log.i(TAG, "Using largest suitable preview size: " + largestSize);
-            return largestSize;*/
-            return largestPreview;
-        }
-
-        // If there is nothing at all suitable, return current preview size
-        Camera.Size defaultPreview = parameters.getPreviewSize();
-        if (defaultPreview == null) {
-            throw new IllegalStateException("Parameters contained no preview size!");
-        }
-        // Point defaultSize = new Point(defaultPreview.width, defaultPreview.height);
-        // Log.i(TAG, "No suitable preview sizes, using default: " + defaultSize);
-        // return defaultSize;
-        return defaultPreview;
-    }
-
-    private Camera.Size getBestPreviewSize(int width, int height,
-                                           Camera.Parameters parameters) {
-        Camera.Size result=null;
-
-        for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
-            if (size.width<=width && size.height<=height) {
-                if (result==null) {
-                    result=size;
-                }
-                else {
-                    int resultArea=result.width*result.height;
-                    int newArea=size.width*size.height;
-
-                    if (newArea>resultArea) {
-                        result=size;
-                    }
-                }
-            }
-        }
-
-        return(result);
-    }
-
-    private Activity activity;
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-    }
-
-    public int getStatuBarHeight() {
-        if (activity == null) {
-            return 0;
-        }
-        Rect frame = new Rect();
-        activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);
-        int statusBarHeight = frame.top;
-        return statusBarHeight;
-    }
 }

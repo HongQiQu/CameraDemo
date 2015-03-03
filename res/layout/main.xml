@@ -92,17 +92,24 @@
             android:gravity="center"
             android:layout_marginLeft="10dp"/>
 
-        <Button
-                android:id="@+id/choose_picture_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+    <Button
+            android:id="@+id/choose_picture_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_toRightOf="@+id/torch_switch_btn"
+            android:layout_alignBottom="@+id/torch_switch_btn"
+            android:onClick="onClick"
+            android:text="Choose"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"/>
+
+        <ImageView
+                android:id="@+id/preview_iv"
                 android:layout_centerHorizontal="true"
-                android:layout_toRightOf="@+id/torch_switch_btn"
-                android:layout_alignBottom="@+id/torch_switch_btn"
-                android:onClick="onClick"
-                android:text="Choose"
-                android:gravity="center"
-                android:layout_marginLeft="10dp"/>
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                />
 
 </RelativeLayout>
 

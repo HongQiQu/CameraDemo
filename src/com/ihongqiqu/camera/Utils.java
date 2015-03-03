@@ -14,15 +14,15 @@ import java.io.File;
 
 /**
  * 工具类
- *
+ * <p/>
  * Created by zhenguo on 2/27/15.
  */
 public class Utils {
 
     public static File getDiskCacheDir(Context context, String uniqueName) {
         String cachePath;
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !Environment.isExternalStorageRemovable()) {
+        if ((Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+                || !Environment.isExternalStorageRemovable()) && context.getExternalCacheDir() != null) {
             cachePath = context.getExternalCacheDir().getPath();
         } else {
             cachePath = context.getCacheDir().getPath();
@@ -188,23 +188,25 @@ public class Utils {
 
     /**
      * 获取屏幕长宽比
+     *
      * @param context
      * @return
      */
-    public static float getScreenRate(Context context){
+    public static float getScreenRate(Context context) {
         Point P = getScreenMetrics(context);
         float H = P.y;
         float W = P.x;
-        return (H/W);
+        return (H / W);
     }
 
     /**
      * 获取屏幕宽度和高度，单位为px
+     *
      * @param context
      * @return
      */
-    public static Point getScreenMetrics(Context context){
-        DisplayMetrics dm =context.getResources().getDisplayMetrics();
+    public static Point getScreenMetrics(Context context) {
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
         int w_screen = dm.widthPixels;
         int h_screen = dm.heightPixels;
         // Log.i(TAG, "Screen---Width = " + w_screen + " Height = " + h_screen + " densityDpi = " + dm.densityDpi);
