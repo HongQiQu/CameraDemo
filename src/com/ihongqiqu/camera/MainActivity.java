@@ -277,9 +277,9 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize : " + b.getWidth() + " - " + b.getHeight());
         Log.d("CameraSurfaceView", "CameraSurfaceView bitmapSize2 : " + rightBitmap.getWidth() + " - " + rightBitmap.getHeight());
 
-        int cropWidth = (int) (1F * viewHeight / mScreenWidth * rightBitmap.getWidth());
-        int cropX = (rightBitmap.getWidth() - mPreview.moveX * 2) / 4;
-        int cropY = (rightBitmap.getHeight() - cropWidth - mPreview.moveY * 2) / 2;
+        int cropWidth = (int) (1F * viewHeight / mScreenWidth * (rightBitmap.getWidth() - mPreview.moveX * 2));
+        int cropX = rightBitmap.getWidth() / 2 - cropWidth / 2;
+        int cropY = rightBitmap.getHeight() / 2 - cropWidth / 2;
         if (rightBitmap.getWidth() < cropWidth + cropX) {
             cropX = rightBitmap.getWidth() - cropWidth;
         }

@@ -2,7 +2,6 @@ package com.ihongqiqu.camera;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
@@ -123,9 +122,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
 
             // Center the child SurfaceView within the parent.
             if (width * previewHeight > height * previewWidth) {
-                /*final int scaledChildWidth = previewWidth * height / previewHeight;
-                child.layout((width - scaledChildWidth) / 2, 0,
-                        (width + scaledChildWidth) / 2, height);*/
 
                 final int scaleWidth = width;
                 final int scaleHeight = width * previewHeight / previewWidth;
@@ -136,9 +132,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
                 }
                 child.layout(-moveX, -moveY, scaleWidth, scaleHeight);
             } else {
-                /*final int scaledChildHeight = previewHeight * width / previewWidth;
-                child.layout(0, (height - scaledChildHeight) / 2,
-                        width, (height + scaledChildHeight) / 2);*/
 
                 final int scaleHeight = height;
                 final int scaleWidth = height * previewWidth / previewHeight;
@@ -188,6 +181,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
         // the preview.
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        parameters.setPictureSize(mPreviewSize.width, mPreviewSize.height);
         requestLayout();
 
         mCamera.setParameters(parameters);
