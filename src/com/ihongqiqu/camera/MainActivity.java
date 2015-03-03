@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
@@ -285,7 +286,20 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
         Utils.compress(rightBitmap, 2 * 1024 * 1024);
 
-        int cropWidth = (int) (1F * viewHeight / mScreenWidth * (rightBitmap.getWidth() - mPreview.moveX * 2));
+        // 偏移量
+        int moveX = mPreview.moveX * 2;
+        int previewW = mPreview.mPreviewSize.width;
+        int previewH = mPreview.mPreviewSize.height;
+        int pictureW = mPreview.mPictureSize.width;
+        int pictureH = mPreview.mPictureSize.height;
+        int viewW = mPreview.getWidth();
+        int viewH = mPreview.getHeight();
+
+        rightBitmap = Utils.scale(rightBitmap, previewW, 1F * previewW * pictureW / pictureH);
+        // moveX = 0;
+
+        int cropWidth = (int) (1F * viewHeight / mScreenWidth * (rightBitmap.getWidth() - moveX));
+
         int cropX = rightBitmap.getWidth() / 2 - cropWidth / 2;
         int cropY = rightBitmap.getHeight() / 2 - cropWidth / 2;
         if (rightBitmap.getWidth() < cropWidth + cropX) {

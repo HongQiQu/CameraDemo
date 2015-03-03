@@ -25,10 +25,13 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
     public int moveX = 0;
     public int moveY = 0;
 
-    private SurfaceView mSurfaceView;
+    public SurfaceView mSurfaceView;
     private SurfaceHolder mHolder;
-    private Camera.Size mPreviewSize;
+    public Camera.Size mPreviewSize;
     private List<Camera.Size> mSupportedPreviewSizes;
+
+    public Camera.Size mPictureSize;
+    private List<Camera.Size> mSupportedPictureSizes;
 
     private Camera mCamera;
 
@@ -65,6 +68,13 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
         if (mCamera != null) {
             try {
                 mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+                mSupportedPictureSizes = mCamera.getParameters().getSupportedPictureSizes();
+                for (Camera.Size size : mSupportedPreviewSizes) {
+                    Log.d(TAG, "Preview for mPreviewSize w - h : " + size.width + " - " + size.height);
+                }
+                for (Camera.Size size : mSupportedPictureSizes) {
+                    Log.d(TAG, "Preview for mPictureSize w - h : " + size.width + " - " + size.height);
+                }
                 mCamera.setDisplayOrientation(90);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -81,10 +91,17 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(width, height);
-
+        Log.d(TAG, "Preview w - h : " + width + " - " + height);
         if (mSupportedPreviewSizes != null) {
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+            // 需要宽高切换 因为相机有90度的角度
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, height, width);
+            Log.d(TAG, "Preview mPreviewSize w - h : " + mPreviewSize.width + " - " + mPreviewSize.height);
         }
+        if (mSupportedPictureSizes != null) {
+            mPictureSize = getOptimalPreviewSize(mSupportedPictureSizes, height, width);
+            Log.d(TAG, "Preview mPictureSize w - h : " + mPictureSize.width + " - " + mPictureSize.height);
+        }
+
     }
 
     @Override
@@ -159,7 +176,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
             // the preview.
             Camera.Parameters parameters = mCamera.getParameters();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-            parameters.setPictureSize(mPreviewSize.width, mPreviewSize.height);
+            parameters.setPictureSize(mPictureSize.width, mPictureSize.height);
             requestLayout();
 
             mCamera.setParameters(parameters);
@@ -187,6 +204,9 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
 
         // Try to find an size match aspect ratio and size
         for (Camera.Size size : sizes) {
+            if (size.height == 1600) {
+                Log.d("", "");
+            }
             double ratio = (double) size.width / size.height;
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
             if (Math.abs(size.height - targetHeight) < minDiff) {
