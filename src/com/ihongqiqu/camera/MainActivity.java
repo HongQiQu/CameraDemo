@@ -11,6 +11,7 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,9 +21,18 @@ import android.widget.Toast;
 
 import java.io.*;
 
+/**
+ * 拍照并截取中间设定区域
+ *
+ * 主要遇到的问题：显示相机SurfaceView尺寸，相机预览尺寸 和 相机保存图片尺寸 三者不一致 导致截图需要处理后才能准确
+ *
+ */
 public class MainActivity extends Activity implements Camera.PictureCallback, Camera.ShutterCallback {
 
     public static final int FLAG_CHOOCE_PICTURE = 2001;
+    private final int FLAG_AUTO_FOCUS = 1001;
+
+    private final int FOCUS_DURATION = 3000;
 
     private View centerWindowView;
     private int mScreenHeight, mScreenWidth;
@@ -53,7 +63,17 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         setContentView(R.layout.main);
 
         preview_iv = (ImageView) findViewById(R.id.preview_iv);
-        handler = new Handler();
+        handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == FLAG_AUTO_FOCUS) {
+                    if (mCamera != null) {
+                        mCamera.autoFocus(null);
+                        handler.sendEmptyMessageDelayed(FLAG_AUTO_FOCUS, FOCUS_DURATION);
+                    }
+                }
+            }
+        };
 
         centerWindowView = findViewById(R.id.center_window_view);
         Log.d("CameraSurfaceView", "CameraSurfaceView onCreate currentThread : " + Thread.currentThread());
@@ -121,11 +141,28 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         }
         cameraCurrentlyLocked = defaultCameraId;
         mPreview.setCamera(mCamera);
+
+        startFocus();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        stopFocus();
+    }
+
+    /**
+     * 开启自动对焦
+     */
+    private void startFocus() {
+        handler.sendEmptyMessageDelayed(FLAG_AUTO_FOCUS, FOCUS_DURATION);
+    }
+
+    /**
+     * 关闭自动对焦
+     */
+    private void stopFocus() {
+        handler.removeMessages(FLAG_AUTO_FOCUS);
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.ihongqiqu.camera;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.*;
@@ -204,9 +206,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback, Camera.
 
         // Try to find an size match aspect ratio and size
         for (Camera.Size size : sizes) {
-            if (size.height == 1600) {
-                Log.d("", "");
-            }
             double ratio = (double) size.width / size.height;
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
             if (Math.abs(size.height - targetHeight) < minDiff) {
