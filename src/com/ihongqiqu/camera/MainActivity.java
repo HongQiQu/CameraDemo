@@ -67,10 +67,12 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == FLAG_AUTO_FOCUS) {
-                    if (mCamera != null) {
+                    if (mCamera != null && safeToTakePicture && !TextUtils.isEmpty(mCamera.getParameters().getFlashMode())) {
+                        mCamera.startPreview();
                         mCamera.autoFocus(null);
-                        handler.sendEmptyMessageDelayed(FLAG_AUTO_FOCUS, FOCUS_DURATION);
+                        Toast.makeText(MainActivity.this, "auto focus", Toast.LENGTH_SHORT).show();
                     }
+                    handler.sendEmptyMessageDelayed(FLAG_AUTO_FOCUS, FOCUS_DURATION);
                 }
             }
         };
@@ -134,7 +136,9 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
         // Open the default i.e. the first rear facing camera.
         try {
-            mCamera = Camera.open();
+            if (mCamera == null) {
+                mCamera = Camera.open();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "启动照相机失败，请检查设备并打开权限", Toast.LENGTH_SHORT).show();
@@ -155,6 +159,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
      * 开启自动对焦
      */
     private void startFocus() {
+        stopFocus();
         handler.sendEmptyMessageDelayed(FLAG_AUTO_FOCUS, FOCUS_DURATION);
     }
 
@@ -281,7 +286,9 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         // cameraSurfaceView.restartPreview();
         if (mCamera != null) {
             mCamera.startPreview();
-            mCamera.autoFocus(mPreview);
+            if (!TextUtils.isEmpty(mCamera.getParameters().getFlashMode())) {
+                mCamera.autoFocus(mPreview);
+            }
         }
 
         if (data == null || data.length <= 0) {
