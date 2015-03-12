@@ -9,107 +9,121 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-    <View
-            android:id="@+id/center_window_view"
-            android:layout_centerInParent="true"
-            android:layout_width="200dp"
-            android:layout_height="200dp"/>
-
-    <View
-            android:background="#8f999999"
-            android:layout_above="@+id/center_window_view"
+    <RelativeLayout
+            android:layout_marginBottom="59dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent">
 
-    <View
-            android:background="#8f999999"
-            android:layout_below="@+id/center_window_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        <View
+                android:id="@+id/center_window_view"
+                android:layout_centerInParent="true"
+                android:layout_width="200dp"
+                android:layout_height="200dp"/>
 
-    <View
-            android:background="#8f999999"
-            android:layout_toLeftOf="@+id/center_window_view"
-            android:layout_alignTop="@+id/center_window_view"
-            android:layout_alignBottom="@+id/center_window_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        <View
+                android:background="#8f999999"
+                android:layout_above="@+id/center_window_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
-    <View
-            android:background="#8f999999"
-            android:layout_toRightOf="@+id/center_window_view"
-            android:layout_alignTop="@+id/center_window_view"
-            android:layout_alignBottom="@+id/center_window_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        <View
+                android:background="#8f999999"
+                android:layout_below="@+id/center_window_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
-    <Button
-            android:id="@+id/shutter_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="20dp"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:onClick="onClick"
-            android:text="Shutter"
-            />
+        <View
+                android:background="#8f999999"
+                android:layout_toLeftOf="@+id/center_window_view"
+                android:layout_alignTop="@+id/center_window_view"
+                android:layout_alignBottom="@+id/center_window_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
-    <Button
-            android:id="@+id/zoom_down_btn"
-            android:layout_width="55dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_toLeftOf="@+id/shutter_btn"
-            android:layout_marginBottom="20dp"
-            android:onClick="onClick"
-            android:text="-"
-            android:gravity="center"
-            android:layout_marginRight="10dp"/>
+        <View
+                android:background="#8f999999"
+                android:layout_toRightOf="@+id/center_window_view"
+                android:layout_alignTop="@+id/center_window_view"
+                android:layout_alignBottom="@+id/center_window_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
-    <Button
-            android:id="@+id/zoom_up_btn"
-            android:layout_width="55dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_toRightOf="@+id/shutter_btn"
-            android:layout_marginBottom="20dp"
-            android:onClick="onClick"
-            android:text="+"
-            android:gravity="center"
-            android:layout_marginLeft="10dp"/>
 
-    <Button
-            android:id="@+id/torch_switch_btn"
-            android:layout_width="55dp"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_above="@+id/shutter_btn"
-            android:layout_marginBottom="20dp"
-            android:onClick="onClick"
-            android:text="O"
-            android:gravity="center"
-            android:layout_marginLeft="10dp"/>
+        <Button
+                android:id="@+id/torch_switch_btn"
+                android:layout_width="55dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_margin="10dp"
+                android:onClick="onClick"
+                android:text="O"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"/>
 
-    <Button
-            android:id="@+id/choose_picture_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_toRightOf="@+id/torch_switch_btn"
-            android:layout_alignBottom="@+id/torch_switch_btn"
-            android:onClick="onClick"
-            android:text="Choose"
-            android:gravity="center"
-            android:layout_marginLeft="10dp"/>
+        <Button
+                android:id="@+id/choose_picture_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="10dp"
+                android:onClick="onClick"
+                android:text="Choose"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"/>
 
         <ImageView
                 android:id="@+id/preview_iv"
                 android:layout_centerHorizontal="true"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
                 />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="59dp">
+        <Button
+                android:id="@+id/shutter_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:onClick="onClick"
+                android:text="Shutter"
+                />
+
+        <Button
+                android:id="@+id/zoom_down_btn"
+                android:layout_width="55dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_toLeftOf="@+id/shutter_btn"
+                android:layout_centerVertical="true"
+                android:onClick="onClick"
+                android:text="-"
+                android:gravity="center"
+                android:layout_marginRight="10dp"/>
+
+        <Button
+                android:id="@+id/zoom_up_btn"
+                android:layout_width="55dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@+id/shutter_btn"
+                android:layout_centerVertical="true"
+                android:onClick="onClick"
+                android:text="+"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"/>
+    </RelativeLayout>
+
 
 </RelativeLayout>
 

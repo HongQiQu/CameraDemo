@@ -1,5 +1,6 @@
 package com.ihongqiqu.camera;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -7,10 +8,12 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Environment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.lang.reflect.Field;
 
 /**
  * 工具类
@@ -212,6 +215,37 @@ public class Utils {
         // Log.i(TAG, "Screen---Width = " + w_screen + " Height = " + h_screen + " densityDpi = " + dm.densityDpi);
         return new Point(w_screen, h_screen);
 
+    }
+
+    /**
+     * 获取状态栏高度
+     * @param context
+     * @return
+     */
+    public static int getStatusBarHeight(Activity context) {
+        /*Rect frame = new Rect();
+        context.getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);
+
+        int statusBarHeight = frame.top;
+        Log.d("", "statusBarHeight : " + statusBarHeight);
+        return statusBarHeight;*/
+
+        Class<?> c = null;
+        Object obj = null;
+        Field field = null;
+        int x = 0, sbar = 0;
+        try {
+            c = Class.forName("com.android.internal.R$dimen");
+            obj = c.newInstance();
+            field = c.getField("status_bar_height");
+            x = Integer.parseInt(field.get(obj).toString());
+            sbar = context.getResources().getDimensionPixelSize(x);
+        } catch(Exception e1) {
+            // loge("get status bar height fail");
+            e1.printStackTrace();
+        }
+        Log.d("", "statusBarHeight : " + sbar);
+        return sbar;
     }
 
 }

@@ -58,7 +58,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         super.onCreate(savedInstanceState);
         // Hide the window title.
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        // getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.main);
 
@@ -146,7 +146,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
         cameraCurrentlyLocked = defaultCameraId;
         mPreview.setCamera(mCamera);
 
-        startFocus();
+        // startFocus();
     }
 
     @Override
@@ -344,8 +344,11 @@ public class MainActivity extends Activity implements Camera.PictureCallback, Ca
 
         int cropWidth = (int) (1F * viewHeight / mScreenWidth * (rightBitmap.getWidth() - moveX));
 
-        int cropX = rightBitmap.getWidth() / 2 - cropWidth / 2;
-        int cropY = rightBitmap.getHeight() / 2 - cropWidth / 2;
+        int statusBarHeight = Utils.getStatusBarHeight(MainActivity.this);
+        int cropX = (int) (rightBitmap.getWidth() / 2 - cropWidth / 2 + 1F * statusBarHeight * pictureW / pictureH / 2);
+        int cropY = rightBitmap.getHeight() / 2 - cropWidth / 2 - Utils.dip2px(MainActivity.this, 59)
+                 + statusBarHeight / 2;
+        Log.d("", "mPreview.moveY : " + mPreview.moveY);
         if (rightBitmap.getWidth() < cropWidth + cropX) {
             cropX = rightBitmap.getWidth() - cropWidth;
         }
